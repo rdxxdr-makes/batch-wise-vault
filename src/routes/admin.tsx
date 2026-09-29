@@ -4,8 +4,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useResources, type Resource } from "@/lib/useResources";
 import { ResourceCard } from "@/components/ResourceCard";
 import { BATCHES, TYPES, YEARS, subjectsFor, teacherFor } from "@/lib/constants";
-import { clearSession, getPin, getRole } from "@/lib/session";
-import { createUploadUrl, deleteResource, saveResource } from "@/lib/resources.functions";
+import { clearSession, getRole } from "@/lib/session";
+import { deleteResource, saveResource } from "@/lib/store";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -78,28 +78,7 @@ function AdminPage() {
     }
     setBusy(true);
     try {
-      const pin = getPin();
-      let filePath: string | undefined;
-      let fileName: string | undefined;
-      if (file) {
-        const up = await createUploadUrl({ data: { pin, fileName: file.name } });
-        const res = await fetch(up.signedUrl, {
-          method: "PUT",
-          headers: { "x-upsert": "true" },
-          body: file,
-        });
-        if (!res.ok) throw new Error("Upload failed");
-        filePath = up.path;
-        fileName = file.name;
-      }
-      await saveResource({
-        data: {
-          pin,
-          ...(editingId ? { id: editingId } : {}),
-          fields: form,
-          ...(filePath && fileName ? { filePath, fileName } : {}),
-        },
-      });
+      await saveResource(editingId, form, file);
       await qc.invalidateQueries({ queryKey: ["resources"] });
       reset();
       setMsg("Saved.");
@@ -128,7 +107,7 @@ function AdminPage() {
 
   async function remove(id: string) {
     if (!confirm("Delete this resource?")) return;
-    await deleteResource({ data: { pin: getPin(), id } });
+    await deleteResource(id);
     await qc.invalidateQueries({ queryKey: ["resources"] });
   }
 

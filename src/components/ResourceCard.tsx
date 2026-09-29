@@ -1,11 +1,8 @@
-import { getFileUrl } from "@/lib/resources.functions";
+import { openFile } from "@/lib/store";
 import type { Resource } from "@/lib/useResources";
 
-async function open(r: Resource, download: boolean) {
-  const { url } = await getFileUrl({
-    data: { path: r.file_path, download, fileName: r.file_name },
-  });
-  window.open(url, "_blank");
+function open(r: Resource, download: boolean) {
+  void openFile(r.id, download);
 }
 
 export function ResourceCard({
