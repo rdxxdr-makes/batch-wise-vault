@@ -1,24 +1,75 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { setSession } from "@/lib/session";
+import { STUDENT_PIN } from "@/lib/constants";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "College Resource Portal — Sign in" },
+      {
+        name: "description",
+        content: "Enter your PIN to access class notes, homework, PPTs and overviews.",
+      },
+      { property: "og:title", content: "College Resource Portal" },
+      {
+        property: "og:description",
+        content: "Notes, homework, PPTs and class overviews for every year and batch.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: Login,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+function Login() {
+  const navigate = useNavigate();
+  const [pin, setPin] = useState("");
+  const [error, setError] = useState("");
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (pin === "AMMA@4884") {
+      setSession("admin", pin);
+      navigate({ to: "/admin" });
+    } else if (pin === STUDENT_PIN) {
+      setSession("student", pin);
+      navigate({ to: "/resources" });
+    } else {
+      setError("Incorrect PIN. Please try again.");
+    }
+  }
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <main className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-8 shadow-sm">
+        <h1 className="text-2xl font-semibold tracking-tight text-card-foreground">
+          College Resource Portal
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Notes, homework, PPTs and class overviews.
+        </p>
+        <form onSubmit={submit} className="mt-6 space-y-3">
+          <input
+            type="password"
+            value={pin}
+            onChange={(e) => {
+              setPin(e.target.value);
+              setError("");
+            }}
+            placeholder="Enter your PIN"
+            className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
+          />
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <button
+            type="submit"
+            className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+          >
+            Continue
+          </button>
+        </form>
+      </div>
+    </main>
   );
 }
