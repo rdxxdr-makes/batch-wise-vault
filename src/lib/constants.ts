@@ -7,7 +7,7 @@ export const BATCHES: Record<string, string[]> = {
 
 export const TYPES = ["Notes", "Homework", "PPT", "Class Overview"] as const;
 
-export const SUBJECT_TEACHERS: Record<string, string> = {
+const AI_DS_1ST: Record<string, string> = {
   Biotechnology: "Shikha Dwivedi",
   EEE: "Diwaker Pathak",
   Maths: "Neha Singh",
@@ -18,6 +18,73 @@ export const SUBJECT_TEACHERS: Record<string, string> = {
   "Elements of Computing": "Manishika Mam and Kulbhushan Sir",
 };
 
-export const SUBJECTS = Object.keys(SUBJECT_TEACHERS);
+// Subject -> Teacher, keyed by year then batch
+export const SUBJECT_TEACHERS: Record<string, Record<string, Record<string, string>>> = {
+  "1st Year": {
+    "CSE-A": {
+      Maths: "Deepika Mam",
+      "Computational Thinking": "Sushil Sir (online)",
+      EEE: "Diwakar Pathak",
+      Hardware: "Shikha Dwivedi",
+      "Technical Communication": "Shail Jha Sir",
+      "Indian Heritage": "Ankur Sir",
+      MAOM: "Arpan Sir",
+    },
+    "CSE-B": {
+      Maths: "Deepika Mam",
+      "Computational Thinking": "Sushil Sir (online) and Monika Mam",
+      EEE: "Ajit Debnath",
+      Hardware: "Shikha Dwivedi",
+      "Technical Communication": "Shail Jha Sir",
+      "Indian Heritage": "Ankur Sir (online)",
+      MAOM: "Arpan Sir",
+    },
+    "AI-DS": AI_DS_1ST,
+    "CSE(AI)": AI_DS_1ST,
+    ECE: {
+      "Engineering Maths": "Neha Singh",
+      "Problem Solving and Algorithmic Thinking": "Sushil Sir (online) and Monika Mam",
+      "Fundamental of Electronics": "Ajit Debnath (online)",
+      "C Programming": "B Rajathilagam",
+      "Nature Inspired Engineering": "Mithlesh Sir",
+      "Physics of Semiconductor": "Kulbhushan Sir",
+      "Indian Heritage": "Ankur Sir",
+      MAOM: "Arpan Sir",
+    },
+  },
+  "2nd Year": {
+    "AI-DS": {
+      "Intro to Robotics": "Mithlesh Sir",
+      "Software Communication": "Ajit Debnath",
+      "Engineering Maths": "Luv Sir",
+      "Intro to Computer Network": "Shikha Dwivedi",
+      Modelling: "Sumant Sir (online)",
+      "AI/ML": "Akanksha Mam",
+    },
+    CSE: {
+      "Digital Electronics": "Kulbhushan Sir",
+      DSA: "B Rajathilagam",
+      DBMS: "Akanksha Mam",
+      "Optimisation Techniques Lab": "Luv Sir",
+      "Procedural Programming using C": "Akanksha Mam",
+    },
+  },
+};
+
+export function subjectsFor(year: string, batch: string): string[] {
+  return Object.keys(SUBJECT_TEACHERS[year]?.[batch] ?? {});
+}
+
+export function teacherFor(year: string, batch: string, subject: string): string {
+  return SUBJECT_TEACHERS[year]?.[batch]?.[subject] ?? "";
+}
+
+export const ALL_SUBJECTS = Array.from(
+  new Set(
+    Object.values(SUBJECT_TEACHERS).flatMap((batches) =>
+      Object.values(batches).flatMap((map) => Object.keys(map)),
+    ),
+  ),
+).sort();
 
 export const STUDENT_PIN = "544545";

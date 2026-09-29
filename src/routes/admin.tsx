@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useResources, type Resource } from "@/lib/useResources";
 import { ResourceCard } from "@/components/ResourceCard";
-import { BATCHES, SUBJECTS, SUBJECT_TEACHERS, TYPES, YEARS } from "@/lib/constants";
+import { BATCHES, TYPES, YEARS, subjectsFor, teacherFor } from "@/lib/constants";
 import { clearSession, getPin, getRole } from "@/lib/session";
 import { createUploadUrl, deleteResource, saveResource } from "@/lib/resources.functions";
 
