@@ -53,8 +53,9 @@ function AdminPage() {
     setForm((f) => ({
       ...f,
       [k]: v,
-      ...(k === "subject" && SUBJECT_TEACHERS[v] ? { teacher: SUBJECT_TEACHERS[v] } : {}),
-      ...(k === "year" ? { batch: "" } : {}),
+      ...(k === "subject" ? { teacher: teacherFor(f.year, f.batch, v) } : {}),
+      ...(k === "year" ? { batch: "", subject: "", teacher: "" } : {}),
+      ...(k === "batch" ? { subject: "", teacher: "" } : {}),
     }));
   }
 
@@ -186,10 +187,11 @@ function AdminPage() {
           <select
             className={inputCls}
             value={form.subject}
+            disabled={!form.batch}
             onChange={(e) => set("subject", e.target.value)}
           >
-            <option value="">Select subject</option>
-            {SUBJECTS.map((s) => (
+            <option value="">{form.batch ? "Select subject" : "Select batch first"}</option>
+            {subjectsFor(form.year, form.batch).map((s) => (
               <option key={s}>{s}</option>
             ))}
           </select>
