@@ -86,6 +86,7 @@ function ResourcesPage() {
             onChange={(e) => {
               setYear(e.target.value);
               setBatch("");
+              setSubject("");
             }}
           >
             <option value="">All years</option>
@@ -93,7 +94,14 @@ function ResourcesPage() {
               <option key={y}>{y}</option>
             ))}
           </select>
-          <select className={selectCls} value={batch} onChange={(e) => setBatch(e.target.value)}>
+          <select
+            className={selectCls}
+            value={batch}
+            onChange={(e) => {
+              setBatch(e.target.value);
+              setSubject("");
+            }}
+          >
             <option value="">All batches</option>
             {batchOptions.map((b) => (
               <option key={b}>{b}</option>
