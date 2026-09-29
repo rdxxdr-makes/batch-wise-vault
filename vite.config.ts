@@ -12,12 +12,4 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
-  vite: {
-    define: {
-      // Vercel-safe alias: accept the classic anon key name as a fallback for the
-      // publishable key the generated Supabase client expects.
-      "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY":
-        "(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY)",
-    },
-  },
 });
