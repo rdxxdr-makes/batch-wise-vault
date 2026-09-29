@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useResources } from "@/lib/useResources";
 import { ResourceCard } from "@/components/ResourceCard";
-import { BATCHES, SUBJECTS, TYPES, YEARS } from "@/lib/constants";
+import { ALL_SUBJECTS, BATCHES, TYPES, YEARS, subjectsFor } from "@/lib/constants";
 import { clearSession } from "@/lib/session";
 
 export const Route = createFileRoute("/resources")({
@@ -38,6 +38,7 @@ function ResourcesPage() {
   const [type, setType] = useState("");
 
   const batchOptions = year ? (BATCHES[year] ?? []) : Array.from(new Set(Object.values(BATCHES).flat()));
+  const subjectOptions = year && batch ? subjectsFor(year, batch) : ALL_SUBJECTS;
 
   const list = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -85,6 +86,7 @@ function ResourcesPage() {
             onChange={(e) => {
               setYear(e.target.value);
               setBatch("");
+              setSubject("");
             }}
           >
             <option value="">All years</option>
@@ -92,7 +94,14 @@ function ResourcesPage() {
               <option key={y}>{y}</option>
             ))}
           </select>
-          <select className={selectCls} value={batch} onChange={(e) => setBatch(e.target.value)}>
+          <select
+            className={selectCls}
+            value={batch}
+            onChange={(e) => {
+              setBatch(e.target.value);
+              setSubject("");
+            }}
+          >
             <option value="">All batches</option>
             {batchOptions.map((b) => (
               <option key={b}>{b}</option>
@@ -100,7 +109,7 @@ function ResourcesPage() {
           </select>
           <select className={selectCls} value={subject} onChange={(e) => setSubject(e.target.value)}>
             <option value="">All subjects</option>
-            {SUBJECTS.map((s) => (
+            {subjectOptions.map((s) => (
               <option key={s}>{s}</option>
             ))}
           </select>
