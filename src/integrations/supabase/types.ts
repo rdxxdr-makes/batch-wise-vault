@@ -14,7 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      resources: {
+        Row: {
+          batch: string
+          contributor: string | null
+          created_at: string
+          description: string | null
+          file_name: string
+          file_path: string
+          id: string
+          subject: string
+          teacher: string | null
+          title: string
+          type: string
+          updated_at: string
+          year: string
+        }
+        Insert: {
+          batch: string
+          contributor?: string | null
+          created_at?: string
+          description?: string | null
+          file_name: string
+          file_path: string
+          id?: string
+          subject: string
+          teacher?: string | null
+          title: string
+          type: string
+          updated_at?: string
+          year: string
+        }
+        Update: {
+          batch?: string
+          contributor?: string | null
+          created_at?: string
+          description?: string | null
+          file_name?: string
+          file_path?: string
+          id?: string
+          subject?: string
+          teacher?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+          year?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
