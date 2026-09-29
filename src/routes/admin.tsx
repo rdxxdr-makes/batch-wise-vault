@@ -96,7 +96,7 @@ function AdminPage() {
           pin,
           ...(editingId ? { id: editingId } : {}),
           fields: form,
-          ...(filePath ? { filePath, fileName } : {}),
+          ...(filePath && fileName ? { filePath, fileName } : {}),
         },
       });
       await qc.invalidateQueries({ queryKey: ["resources"] });
