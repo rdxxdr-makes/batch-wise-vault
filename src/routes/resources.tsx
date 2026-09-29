@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useResources } from "@/lib/useResources";
 import { ResourceCard } from "@/components/ResourceCard";
-import { BATCHES, SUBJECTS, TYPES, YEARS } from "@/lib/constants";
+import { ALL_SUBJECTS, BATCHES, TYPES, YEARS, subjectsFor } from "@/lib/constants";
 import { clearSession } from "@/lib/session";
 
 export const Route = createFileRoute("/resources")({
@@ -38,6 +38,7 @@ function ResourcesPage() {
   const [type, setType] = useState("");
 
   const batchOptions = year ? (BATCHES[year] ?? []) : Array.from(new Set(Object.values(BATCHES).flat()));
+  const subjectOptions = year && batch ? subjectsFor(year, batch) : ALL_SUBJECTS;
 
   const list = useMemo(() => {
     const term = q.trim().toLowerCase();
