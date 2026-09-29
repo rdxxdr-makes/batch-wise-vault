@@ -109,7 +109,7 @@ function ResourcesPage() {
           </select>
           <select className={selectCls} value={subject} onChange={(e) => setSubject(e.target.value)}>
             <option value="">All subjects</option>
-            {SUBJECTS.map((s) => (
+            {subjectOptions.map((s) => (
               <option key={s}>{s}</option>
             ))}
           </select>
