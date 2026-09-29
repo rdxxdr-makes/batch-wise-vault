@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { listResources } from "./store";
 
 export type Resource = {
   id: string;
@@ -16,15 +16,5 @@ export type Resource = {
 };
 
 export function useResources() {
-  return useQuery({
-    queryKey: ["resources"],
-    queryFn: async (): Promise<Resource[]> => {
-      const { data, error } = await supabase
-        .from("resources")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as Resource[];
-    },
-  });
+  return useQuery({ queryKey: ["resources"], queryFn: listResources });
 }
