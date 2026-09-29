@@ -46,11 +46,12 @@ export const saveResource = createServerFn({ method: "POST" })
     assertAdmin(data.pin);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     if (data.id) {
-      const patch: Record<string, unknown> = { ...data.fields };
-      if (data.filePath && data.fileName) {
-        patch['file_path'] = data.filePath;
-        patch['file_name'] = data.fileName;
-      }
+      const patch = {
+        ...data.fields,
+        ...(data.filePath && data.fileName
+          ? { file_path: data.filePath, file_name: data.fileName }
+          : {}),
+      };
       const { error } = await supabaseAdmin.from("resources").update(patch).eq("id", data.id);
       if (error) throw new Error(error.message);
       return { ok: true };
