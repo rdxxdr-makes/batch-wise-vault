@@ -1,62 +1,50 @@
+import { supabase } from "@/integrations/supabase/client";
 import type { Resource } from "./useResources";
-
-type Row = Resource & { created_at: number; blob?: Blob };
-
-function db(): Promise<IDBDatabase> {
-  return new Promise((res, rej) => {
-    const r = indexedDB.open("portal", 1);
-    r.onupgradeneeded = () => r.result.createObjectStore("resources", { keyPath: "id" });
-    r.onsuccess = () => res(r.result);
-    r.onerror = () => rej(r.error);
-  });
-}
-
-async function tx<T>(mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBRequest<T>) {
-  const d = await db();
-  return new Promise<T>((res, rej) => {
-    const q = fn(d.transaction("resources", mode).objectStore("resources"));
-    q.onsuccess = () => res(q.result);
-    q.onerror = () => rej(q.error);
-  });
-}
+import { getPin } from "./session";
+import { createUploadUrl, deleteResourceFn, getFileUrl, saveResourceFn } from "./resources.functions";
 
 export async function listResources(): Promise<Resource[]> {
-  const rows = await tx<Row[]>("readonly", (s) => s.getAll() as IDBRequest<Row[]>);
-  return rows.sort((a, b) => b.created_at - a.created_at);
+  const { data, error } = await supabase
+    .from("resources")
+    .select("id,title,year,batch,subject,teacher,type,description,contributor,file_path,file_name")
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return data ?? [];
 }
 
 export async function saveResource(
   id: string | null,
-  fields: Omit<Resource, "id" | "file_path" | "file_name">,
+  fields: Omit<Resource, "id" | "file_path" | "file_name" | "teacher" | "description" | "contributor"> & {
+    teacher: string;
+    description: string;
+    contributor: string;
+  },
   file: File | null,
 ) {
-  const old = id ? await tx<Row | undefined>("readonly", (s) => s.get(id)) : undefined;
-  if (!old && !file) throw new Error("A file is required");
-  const row: Row = {
-    ...(old as Row),
-    ...fields,
-    id: id ?? crypto.randomUUID(),
-    created_at: old?.created_at ?? Date.now(),
-    file_path: "",
-    file_name: file ? file.name : old!.file_name,
-    blob: file ?? old!.blob,
-  } as Row;
-  await tx("readwrite", (s) => s.put(row));
+  const pin = getPin() ?? "";
+  let filePath: string | null = null;
+  if (file) {
+    const { path, token } = await createUploadUrl({ data: { pin, fileName: file.name } });
+    const { error } = await supabase.storage.from("resources").uploadToSignedUrl(path, token, file);
+    if (error) throw new Error(error.message);
+    filePath = path;
+  }
+  await saveResourceFn({ data: { pin, id, fields, filePath, fileName: file ? file.name : null } });
 }
 
 export async function deleteResource(id: string) {
-  await tx("readwrite", (s) => s.delete(id));
+  await deleteResourceFn({ data: { pin: getPin() ?? "", id } });
 }
 
 export async function openFile(id: string, download: boolean) {
-  const row = await tx<Row | undefined>("readonly", (s) => s.get(id));
-  if (!row?.blob) return alert("File not found.");
-  const url = URL.createObjectURL(row.blob);
-  if (download) {
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = row.file_name;
-    a.click();
-  } else window.open(url, "_blank");
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  // Open a tab synchronously so mobile popup blockers allow it.
+  const win = download ? null : window.open("", "_blank");
+  try {
+    const { url } = await getFileUrl({ data: { id, download } });
+    if (win) win.location.href = url;
+    else window.location.href = url;
+  } catch {
+    win?.close();
+    alert("File not found.");
+  }
 }
