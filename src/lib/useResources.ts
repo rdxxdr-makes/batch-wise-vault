@@ -16,5 +16,5 @@ export type Resource = {
 };
 
 export function useResources() {
-  return useQuery({ queryKey: ["resources"], queryFn: listResources });
+  return useQuery({ queryKey: ["resources"], queryFn: listResources, refetchInterval: 30000, refetchOnWindowFocus: true });
 }
