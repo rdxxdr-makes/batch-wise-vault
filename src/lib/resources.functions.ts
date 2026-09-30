@@ -48,8 +48,10 @@ export const saveResourceFn = createServerFn({ method: "POST" })
       description: f.description || null,
       contributor: f.contributor || null,
     };
-    if (data.id) {
-      const { data: old } = await sb.from("resources").select("file_path").eq("id", data.id).single();
+    const { data: old } = data.id
+      ? await sb.from("resources").select("file_path").eq("id", data.id).maybeSingle()
+      : { data: null };
+    if (data.id && old) {
       const patch =
         data.filePath && data.fileName ? { ...row, file_path: data.filePath, file_name: data.fileName } : row;
       const { error } = await sb.from("resources").update(patch).eq("id", data.id);
