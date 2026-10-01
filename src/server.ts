@@ -44,8 +44,16 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+function mapSupabaseEnv() {
+  const e = process.env;
+  e["SUPABASE_URL"] ||= e["VITE_SUPABASE_URL"] || import.meta.env["VITE_SUPABASE_URL"];
+  e["SUPABASE_PUBLISHABLE_KEY"] ||=
+    e["VITE_SUPABASE_ANON_KEY"] || e["SUPABASE_ANON_KEY"] || import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
+    mapSupabaseEnv();
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
