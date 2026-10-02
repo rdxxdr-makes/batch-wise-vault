@@ -17,6 +17,7 @@ export type Database = {
       resources: {
         Row: {
           batch: string
+          captured_by: string | null
           contributor: string | null
           created_at: string
           description: string | null
@@ -33,6 +34,7 @@ export type Database = {
         }
         Insert: {
           batch: string
+          captured_by?: string | null
           contributor?: string | null
           created_at?: string
           description?: string | null
@@ -49,6 +51,7 @@ export type Database = {
         }
         Update: {
           batch?: string
+          captured_by?: string | null
           contributor?: string | null
           created_at?: string
           description?: string | null

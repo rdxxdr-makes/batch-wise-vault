@@ -1,0 +1,1 @@
+ALTER TABLE public.resources ADD COLUMN IF NOT EXISTS captured_by text;
