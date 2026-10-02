@@ -12,6 +12,7 @@ type Fields = {
   type: string;
   description: string;
   contributor: string;
+  captured_by: string;
 };
 
 async function admin(pin: string) {
@@ -47,6 +48,7 @@ export const saveResourceFn = createServerFn({ method: "POST" })
       type: f.type,
       description: f.description || null,
       contributor: f.contributor || null,
+      captured_by: f.captured_by || null,
     };
     const { data: old } = data.id
       ? await sb.from("resources").select("file_path").eq("id", data.id).maybeSingle()

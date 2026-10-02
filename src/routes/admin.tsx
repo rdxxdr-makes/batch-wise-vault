@@ -33,6 +33,7 @@ const emptyForm = {
   type: TYPES[0] as string,
   description: "",
   contributor: "",
+  captured_by: "",
 };
 
 function AdminPage() {
@@ -101,6 +102,7 @@ function AdminPage() {
       type: r.type,
       description: r.description ?? "",
       contributor: r.contributor ?? "",
+      captured_by: r.captured_by ?? "",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -187,7 +189,7 @@ function AdminPage() {
           </select>
           <input
             className={inputCls}
-            placeholder="Contributor name"
+            placeholder="Notes provided by"
             value={form.contributor}
             onChange={(e) => set("contributor", e.target.value)}
           />

@@ -35,7 +35,7 @@ export function ResourceCard({
       )}
       {resource.contributor && (
         <p className="mt-2 text-xs text-muted-foreground">
-          Contributed by <span className="font-medium">{resource.contributor}</span>
+          Notes provided by <span className="font-medium">{resource.contributor}</span>
         </p>
       )}
       <div className="mt-4 flex flex-wrap gap-2">
