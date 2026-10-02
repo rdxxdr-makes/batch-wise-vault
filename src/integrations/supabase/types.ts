@@ -23,6 +23,7 @@ export type Database = {
           file_name: string
           file_path: string
           id: string
+          notes_captured_by: string | null
           subject: string
           teacher: string | null
           title: string
@@ -38,6 +39,7 @@ export type Database = {
           file_name: string
           file_path: string
           id?: string
+          notes_captured_by?: string | null
           subject: string
           teacher?: string | null
           title: string
@@ -53,6 +55,7 @@ export type Database = {
           file_name?: string
           file_path?: string
           id?: string
+          notes_captured_by?: string | null
           subject?: string
           teacher?: string | null
           title?: string
