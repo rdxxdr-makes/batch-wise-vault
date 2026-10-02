@@ -194,6 +194,12 @@ function AdminPage() {
             onChange={(e) => set("contributor", e.target.value)}
           />
           <input
+            className={inputCls}
+            placeholder="Notes captured by"
+            value={form.captured_by}
+            onChange={(e) => set("captured_by", e.target.value)}
+          />
+          <input
             type="file"
             accept=".pdf,.ppt,.pptx"
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
