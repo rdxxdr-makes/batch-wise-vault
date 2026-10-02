@@ -6,7 +6,9 @@ import { createUploadUrl, deleteResourceFn, getFileUrl, saveResourceFn } from ".
 export async function listResources(): Promise<Resource[]> {
   const { data, error } = await supabase
     .from("resources")
-    .select("id,title,year,batch,subject,teacher,type,description,contributor,file_path,file_name")
+    .select(
+      "id,title,year,batch,subject,teacher,type,description,contributor,notes_captured_by,file_path,file_name",
+    )
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
   return data ?? [];
@@ -14,10 +16,14 @@ export async function listResources(): Promise<Resource[]> {
 
 export async function saveResource(
   id: string | null,
-  fields: Omit<Resource, "id" | "file_path" | "file_name" | "teacher" | "description" | "contributor"> & {
+  fields: Omit<
+    Resource,
+    "id" | "file_path" | "file_name" | "teacher" | "description" | "contributor" | "notes_captured_by"
+  > & {
     teacher: string;
     description: string;
     contributor: string;
+    notes_captured_by: string;
   },
   file: File | null,
 ) {

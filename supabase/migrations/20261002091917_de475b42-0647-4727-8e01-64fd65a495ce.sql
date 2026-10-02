@@ -1,0 +1,1 @@
+ALTER TABLE public.resources ADD COLUMN notes_captured_by TEXT;

@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { setSession } from "@/lib/session";
 import { STUDENT_PIN } from "@/lib/constants";
+import { SiteFooter } from "@/components/SiteFooter";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -42,8 +43,9 @@ function Login() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-8 shadow-sm">
+    <main className="flex min-h-screen flex-col bg-background">
+      <div className="flex flex-1 items-center justify-center px-4">
+        <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-8 shadow-sm">
         <h1 className="text-2xl font-semibold tracking-tight text-card-foreground">
           College Resource Portal
         </h1>
@@ -69,7 +71,9 @@ function Login() {
             Continue
           </button>
         </form>
+        </div>
       </div>
+      <SiteFooter />
     </main>
   );
 }
