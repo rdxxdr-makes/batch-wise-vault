@@ -38,6 +38,11 @@ export function ResourceCard({
           Notes provided by <span className="font-medium">{resource.contributor}</span>
         </p>
       )}
+      {resource.captured_by && (
+        <p className="mt-1 text-xs text-muted-foreground">
+          Notes captured by <span className="font-medium">{resource.captured_by}</span>
+        </p>
+      )}
       <div className="mt-4 flex flex-wrap gap-2">
         <button
           onClick={() => open(resource, false)}
