@@ -17,12 +17,14 @@ export type Database = {
       resources: {
         Row: {
           batch: string
+          captured_by: string | null
           contributor: string | null
           created_at: string
           description: string | null
           file_name: string
           file_path: string
           id: string
+          notes_captured_by: string | null
           subject: string
           teacher: string | null
           title: string
@@ -32,12 +34,14 @@ export type Database = {
         }
         Insert: {
           batch: string
+          captured_by?: string | null
           contributor?: string | null
           created_at?: string
           description?: string | null
           file_name: string
           file_path: string
           id?: string
+          notes_captured_by?: string | null
           subject: string
           teacher?: string | null
           title: string
@@ -47,12 +51,14 @@ export type Database = {
         }
         Update: {
           batch?: string
+          captured_by?: string | null
           contributor?: string | null
           created_at?: string
           description?: string | null
           file_name?: string
           file_path?: string
           id?: string
+          notes_captured_by?: string | null
           subject?: string
           teacher?: string | null
           title?: string

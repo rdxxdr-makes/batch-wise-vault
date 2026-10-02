@@ -2,7 +2,7 @@
 create table if not exists public.resources (
   id uuid primary key default gen_random_uuid(),
   title text not null, year text not null, batch text not null, subject text not null,
-  teacher text, type text not null, description text, contributor text,
+  teacher text, type text not null, description text, contributor text, captured_by text,
   file_path text not null, file_name text not null,
   created_at timestamptz not null default now(), updated_at timestamptz not null default now()
 );

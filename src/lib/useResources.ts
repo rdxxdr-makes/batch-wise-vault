@@ -11,6 +11,7 @@ export type Resource = {
   type: string;
   description: string | null;
   contributor: string | null;
+  captured_by: string | null;
   file_path: string;
   file_name: string;
 };
