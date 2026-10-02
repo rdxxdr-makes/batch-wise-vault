@@ -40,16 +40,7 @@ export const SUBJECT_TEACHERS: Record<string, Record<string, Record<string, stri
       MAOM: "Arpan Sir",
     },
     "AI-DS": AI_DS_1ST,
-    "CSE(AI)": {
-      "Computational Programming": "B Rajathilagam (Principal)",
-      "Discrete Maths": "Deepika Mam",
-      "Elements of Computing": "Manishika Mam (online)",
-      "Technical Communication": "Shail Jha",
-      "Indian Heritage": "Ankur Sir (online)",
-      "Computational Physics": "Luv Singh",
-      MAOM: "Arpan",
-      "Mathematics for Computing": "Neha Singh",
-    },
+    "CSE(AI)": AI_DS_1ST,
     ECE: {
       "Engineering Maths": "Neha Singh",
       "Problem Solving and Algorithmic Thinking": "Sushil Sir (online) and Monika Mam",

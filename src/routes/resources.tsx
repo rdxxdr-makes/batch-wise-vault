@@ -4,7 +4,6 @@ import { useResources } from "@/lib/useResources";
 import { ResourceCard } from "@/components/ResourceCard";
 import { ALL_SUBJECTS, BATCHES, TYPES, YEARS, subjectsFor } from "@/lib/constants";
 import { clearSession } from "@/lib/session";
-import { SiteFooter } from "@/components/SiteFooter";
 
 export const Route = createFileRoute("/resources")({
   head: () => ({
@@ -50,14 +49,14 @@ function ResourcesPage() {
         (!subject || r.subject === subject) &&
         (!type || r.type === type) &&
         (!term ||
-          [r.title, r.subject, r.teacher, r.contributor, r.notes_captured_by, r.description]
+          [r.title, r.subject, r.teacher, r.contributor, r.description]
             .filter(Boolean)
             .some((v) => v!.toLowerCase().includes(term))),
     );
   }, [data, q, year, batch, subject, type]);
 
   return (
-    <main className="flex min-h-screen flex-col bg-background">
+    <main className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
           <h1 className="text-lg font-semibold">Resources</h1>
@@ -73,11 +72,11 @@ function ResourcesPage() {
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
+      <div className="mx-auto max-w-6xl px-4 py-6">
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Search by title, subject, teacher or notes credit"
+          placeholder="Search by title, subject, teacher or contributor"
           className="w-full rounded-lg border border-input bg-card px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
         />
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -134,7 +133,6 @@ function ResourcesPage() {
           ))}
         </div>
       </div>
-      <SiteFooter />
     </main>
   );
 }

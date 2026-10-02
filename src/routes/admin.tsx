@@ -6,7 +6,6 @@ import { ResourceCard } from "@/components/ResourceCard";
 import { BATCHES, TYPES, YEARS, subjectsFor, teacherFor } from "@/lib/constants";
 import { clearSession, getRole } from "@/lib/session";
 import { deleteResource, saveResource } from "@/lib/store";
-import { SiteFooter } from "@/components/SiteFooter";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -34,7 +33,6 @@ const emptyForm = {
   type: TYPES[0] as string,
   description: "",
   contributor: "",
-  notes_captured_by: "",
 };
 
 function AdminPage() {
@@ -103,7 +101,6 @@ function AdminPage() {
       type: r.type,
       description: r.description ?? "",
       contributor: r.contributor ?? "",
-      notes_captured_by: r.notes_captured_by ?? "",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -117,7 +114,7 @@ function AdminPage() {
   const batchOptions = BATCHES[form.year] ?? [];
 
   return (
-    <main className="flex min-h-screen flex-col bg-background">
+    <main className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
           <h1 className="text-lg font-semibold">Admin dashboard</h1>
@@ -141,7 +138,7 @@ function AdminPage() {
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
+      <div className="mx-auto max-w-6xl px-4 py-6">
         <form
           onSubmit={submit}
           className="grid gap-3 rounded-xl border border-border bg-card p-5 shadow-sm sm:grid-cols-2"
@@ -190,15 +187,9 @@ function AdminPage() {
           </select>
           <input
             className={inputCls}
-            placeholder="Notes provided by"
+            placeholder="Contributor name"
             value={form.contributor}
             onChange={(e) => set("contributor", e.target.value)}
-          />
-          <input
-            className={inputCls}
-            placeholder="Notes captured by"
-            value={form.notes_captured_by}
-            onChange={(e) => set("notes_captured_by", e.target.value)}
           />
           <input
             type="file"
@@ -259,7 +250,6 @@ function AdminPage() {
           ))}
         </div>
       </div>
-      <SiteFooter />
     </main>
   );
 }
