@@ -62,8 +62,7 @@ function ResourcesPage() {
         (!type || r.type === type) &&
         (!term ||
           [r.title, r.subject, r.teacher, r.contributor, r.description]
-            .filter(Boolean)
-            .some((v) => v!.toLowerCase().includes(term))),
+            .some((value) => typeof value === "string" && value.toLowerCase().includes(term))),
     );
   }, [resources, q, year, batch, subject, type]);
 

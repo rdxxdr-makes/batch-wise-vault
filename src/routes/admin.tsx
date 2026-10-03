@@ -349,7 +349,7 @@ function AdminPage() {
             <fieldset className="rounded-lg border border-input p-3 sm:col-span-2 lg:col-span-4">
               <legend className="px-1 text-sm font-medium">Batches / branches</legend>
               <div className="mt-1 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
-                {BATCHES["1st Year"].map((batch) => (
+                {(BATCHES["1st Year"] ?? []).map((batch) => (
                   <label key={batch} className="flex min-h-10 items-center gap-2 rounded-md bg-secondary px-3 py-2 text-sm">
                     <input type="checkbox" checked={timetableForm.batches.includes(batch)} onChange={() => toggleTimetableBatch(batch)} />
                     <span>{batch}</span>
