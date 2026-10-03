@@ -2,8 +2,9 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useResources } from "@/lib/useResources";
 import { ResourceCard } from "@/components/ResourceCard";
-import { ALL_SUBJECTS, BATCHES, TYPES, YEARS, subjectsFor } from "@/lib/constants";
+import { ALL_SUBJECTS, BATCHES, TYPES, YEARS, belongsToBatch, parseBatches, subjectsFor } from "@/lib/constants";
 import { clearSession } from "@/lib/session";
+import { decodeTimetable, TIMETABLE_TYPE, todayValue } from "@/lib/timetable";
 
 export const Route = createFileRoute("/resources")({
   head: () => ({
@@ -40,12 +41,23 @@ function ResourcesPage() {
   const batchOptions = year ? (BATCHES[year] ?? []) : Array.from(new Set(Object.values(BATCHES).flat()));
   const subjectOptions = year && batch ? subjectsFor(year, batch) : ALL_SUBJECTS;
 
+  const resources = useMemo(() => (data ?? []).filter((r) => r.type !== TIMETABLE_TYPE), [data]);
+  const today = todayValue();
+  const timetable = useMemo(
+    () =>
+      (data ?? [])
+        .map((resource) => ({ resource, details: decodeTimetable(resource) }))
+        .filter(({ details }) => details?.date === today)
+        .sort((a, b) => (a.details?.startTime ?? "").localeCompare(b.details?.startTime ?? "")),
+    [data, today],
+  );
+
   const list = useMemo(() => {
     const term = q.trim().toLowerCase();
-    return (data ?? []).filter(
+    return resources.filter(
       (r) =>
         (!year || r.year === year) &&
-        (!batch || r.batch === batch) &&
+        belongsToBatch(r.batch, batch) &&
         (!subject || r.subject === subject) &&
         (!type || r.type === type) &&
         (!term ||
@@ -53,7 +65,7 @@ function ResourcesPage() {
             .filter(Boolean)
             .some((v) => v!.toLowerCase().includes(term))),
     );
-  }, [data, q, year, batch, subject, type]);
+  }, [resources, q, year, batch, subject, type]);
 
   return (
     <main className="min-h-screen bg-background">
@@ -72,7 +84,42 @@ function ResourcesPage() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-6xl px-4 py-6">
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
+        <section aria-labelledby="today-heading">
+          <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+            <div>
+              <h2 id="today-heading" className="text-lg font-semibold text-foreground">Today’s Timetable</h2>
+              <p className="text-sm text-muted-foreground">
+                {new Date(`${today}T12:00:00`).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })}
+              </p>
+            </div>
+          </div>
+          {timetable.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-border bg-card px-4 py-6 text-center text-sm text-muted-foreground">
+              No timetable added for today.
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {timetable.map(({ resource, details }) => (
+                <article key={resource.id} className="rounded-lg border border-border bg-card p-4 shadow-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-card-foreground">{resource.subject}</h3>
+                      <p className="mt-1 text-sm text-muted-foreground">{resource.teacher || "Teacher not specified"}</p>
+                    </div>
+                    <span className="shrink-0 rounded-md bg-accent px-2 py-1 text-xs font-semibold text-accent-foreground">
+                      {details?.startTime}–{details?.endTime}
+                    </span>
+                  </div>
+                  <p className="mt-3 text-sm font-medium text-card-foreground">{resource.batch}</p>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section aria-labelledby="resources-heading" className="mt-8 border-t border-border pt-7">
+          <h2 id="resources-heading" className="mb-3 text-lg font-semibold text-foreground">Study resources</h2>
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -124,7 +171,9 @@ function ResourcesPage() {
         {isLoading && <p className="mt-8 text-sm text-muted-foreground">Loading resources…</p>}
         {error && <p className="mt-8 text-sm text-destructive">Could not load resources.</p>}
         {!isLoading && list.length === 0 && (
-          <p className="mt-8 text-sm text-muted-foreground">No resources found.</p>
+          <div className="mt-6 rounded-lg border border-dashed border-border bg-card px-4 py-8 text-center text-sm text-muted-foreground">
+            No resources match your search and filters.
+          </div>
         )}
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -132,6 +181,7 @@ function ResourcesPage() {
             <ResourceCard key={r.id} resource={r} />
           ))}
         </div>
+        </section>
       </div>
     </main>
   );

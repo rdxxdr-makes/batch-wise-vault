@@ -88,6 +88,29 @@ export function teacherFor(year: string, batch: string, subject: string): string
   return SUBJECT_TEACHERS[year]?.[batch]?.[subject] ?? "";
 }
 
+export function parseBatches(value: string): string[] {
+  return value.split("+").map((batch) => batch.trim()).filter(Boolean);
+}
+
+export function joinBatches(year: string, selected: string[]): string {
+  const order = BATCHES[year] ?? [];
+  return order.filter((batch) => selected.includes(batch)).join(" + ");
+}
+
+export function subjectsForBatches(year: string, batches: string[]): string[] {
+  return Array.from(new Set(batches.flatMap((batch) => subjectsFor(year, batch)))).sort();
+}
+
+export function teacherForBatches(year: string, batches: string[], subject: string): string {
+  return Array.from(
+    new Set(batches.map((batch) => teacherFor(year, batch, subject)).filter(Boolean)),
+  ).join(" / ");
+}
+
+export function belongsToBatch(value: string, batch: string): boolean {
+  return !batch || parseBatches(value).includes(batch);
+}
+
 export const ALL_SUBJECTS = Array.from(
   new Set(
     Object.values(SUBJECT_TEACHERS).flatMap((batches) =>
