@@ -195,6 +195,14 @@
   }
 }
 
+@utility btn-ondark {
+  border: 1px solid oklch(0.98 0.01 250 / 40%);
+  color: oklch(0.98 0.01 250);
+  &:hover {
+    background-color: oklch(0.98 0.01 250 / 14%);
+  }
+}
+
 @utility card-lift {
   box-shadow: var(--shadow-card);
   transition: box-shadow 200ms ease, transform 200ms ease;
