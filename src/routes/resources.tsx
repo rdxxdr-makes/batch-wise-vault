@@ -4,7 +4,8 @@ import { useResources } from "@/lib/useResources";
 import { ResourceCard } from "@/components/ResourceCard";
 import { ALL_SUBJECTS, BATCHES, TYPES, YEARS, belongsToBatch, parseBatches, subjectsFor } from "@/lib/constants";
 import { clearSession } from "@/lib/session";
-import { decodeTimetable, TIMETABLE_TYPE, todayValue } from "@/lib/timetable";
+import { ANNOUNCEMENT_TYPE, isSpecialType, MAX_ANNOUNCEMENTS, TIMETABLE_IMAGE_TYPE } from "@/lib/timetable";
+import { EmptyState, TimetableImage } from "@/components/Board";
 
 export const Route = createFileRoute("/resources")({
   head: () => ({
@@ -41,16 +42,9 @@ function ResourcesPage() {
   const batchOptions = year ? (BATCHES[year] ?? []) : Array.from(new Set(Object.values(BATCHES).flat()));
   const subjectOptions = year && batch ? subjectsFor(year, batch) : ALL_SUBJECTS;
 
-  const resources = useMemo(() => (data ?? []).filter((r) => r.type !== TIMETABLE_TYPE), [data]);
-  const today = todayValue();
-  const timetable = useMemo(
-    () =>
-      (data ?? [])
-        .map((resource) => ({ resource, details: decodeTimetable(resource) }))
-        .filter(({ details }) => details?.date === today)
-        .sort((a, b) => (a.details?.startTime ?? "").localeCompare(b.details?.startTime ?? "")),
-    [data, today],
-  );
+  const resources = useMemo(() => (data ?? []).filter((r) => !isSpecialType(r.type)), [data]);
+  const timetable = (data ?? []).find((r) => r.type === TIMETABLE_IMAGE_TYPE);
+  const announcements = (data ?? []).filter((r) => r.type === ANNOUNCEMENT_TYPE).slice(0, MAX_ANNOUNCEMENTS);
 
   const list = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -84,38 +78,26 @@ function ResourcesPage() {
       </header>
 
       <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
-        <section aria-labelledby="today-heading">
-          <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
-            <div>
-              <h2 id="today-heading" className="text-lg font-semibold text-foreground">Today’s Timetable</h2>
-              <p className="text-sm text-muted-foreground">
-                {new Date(`${today}T12:00:00`).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })}
-              </p>
-            </div>
-          </div>
-          {timetable.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-border bg-card px-4 py-6 text-center text-sm text-muted-foreground">
-              No timetable added for today.
-            </div>
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {timetable.map(({ resource, details }) => (
-                <article key={resource.id} className="rounded-lg border border-border bg-card p-4 shadow-sm">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h3 className="font-semibold text-card-foreground">{resource.subject}</h3>
-                      <p className="mt-1 text-sm text-muted-foreground">{resource.teacher || "Teacher not specified"}</p>
-                    </div>
-                    <span className="shrink-0 rounded-md bg-accent px-2 py-1 text-xs font-semibold text-accent-foreground">
-                      {details?.startTime}–{details?.endTime}
-                    </span>
-                  </div>
-                  <p className="mt-3 text-sm font-medium text-card-foreground">{resource.batch}</p>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
+        <div className="grid gap-8 lg:grid-cols-3">
+          <section aria-labelledby="today-heading" className="lg:col-span-2">
+            <h2 id="today-heading" className="mb-3 text-lg font-semibold text-foreground">Today’s Timetable</h2>
+            {timetable ? <TimetableImage resource={timetable} /> : <EmptyState>No timetable added for today.</EmptyState>}
+          </section>
+          <section aria-labelledby="ann-heading">
+            <h2 id="ann-heading" className="mb-3 text-lg font-semibold text-foreground">Announcements</h2>
+            {announcements.length === 0 ? (
+              <EmptyState>No announcements yet.</EmptyState>
+            ) : (
+              <ul className="space-y-3">
+                {announcements.map((a) => (
+                  <li key={a.id} className="rounded-xl border-l-4 border-accent bg-card p-4 text-sm shadow-sm whitespace-pre-wrap">
+                    {a.description}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </div>
 
         <section aria-labelledby="resources-heading" className="mt-8 border-t border-border pt-7">
           <h2 id="resources-heading" className="mb-3 text-lg font-semibold text-foreground">Study resources</h2>

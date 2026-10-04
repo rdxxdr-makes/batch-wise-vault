@@ -70,8 +70,9 @@ export const saveResourceFn = createServerFn({ method: "POST" })
   });
 
 export const deleteResourceFn = createServerFn({ method: "POST" })
-  .inputValidator((d: { pin: string; id: string }) => d)
+  .inputValidator((d: { pin: string; id: string; deletePin: string }) => d)
   .handler(async ({ data }) => {
+    if (data.deletePin !== "543627") throw new Error("Wrong delete PIN");
     const sb = await admin(data.pin);
     const { data: old } = await sb.from("resources").select("file_path").eq("id", data.id).single();
     const { error } = await sb.from("resources").delete().eq("id", data.id);
