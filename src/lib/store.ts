@@ -33,8 +33,17 @@ export async function saveResource(
   await saveResourceFn({ data: { pin, id, fields, filePath, fileName: file ? file.name : null } });
 }
 
+/** Asks for the delete PIN; returns true only when deleted. */
 export async function deleteResource(id: string) {
-  await deleteResourceFn({ data: { pin: getPin() ?? "", id } });
+  const deletePin = window.prompt("Enter delete PIN");
+  if (deletePin === null) return false;
+  try {
+    await deleteResourceFn({ data: { pin: getPin() ?? "", id, deletePin } });
+    return true;
+  } catch (err) {
+    alert(err instanceof Error ? err.message : "Delete failed.");
+    return false;
+  }
 }
 
 export async function openFile(id: string, download: boolean) {

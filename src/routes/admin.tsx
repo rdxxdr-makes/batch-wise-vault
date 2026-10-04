@@ -14,7 +14,15 @@ import {
 } from "@/lib/constants";
 import { clearSession, getRole } from "@/lib/session";
 import { deleteResource, saveResource } from "@/lib/store";
-import { decodeTimetable, encodeTimetable, timetableAttachment, TIMETABLE_TYPE, todayValue } from "@/lib/timetable";
+import {
+  ANNOUNCEMENT_TYPE,
+  isSpecialType,
+  MAX_ANNOUNCEMENTS,
+  placeholderAttachment,
+  specialFields,
+  TIMETABLE_IMAGE_TYPE,
+} from "@/lib/timetable";
+import { EmptyState, TimetableImage } from "@/components/Board";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -45,15 +53,6 @@ const emptyForm = {
   captured_by: "",
 };
 
-const emptyTimetable = {
-  date: todayValue(),
-  startTime: "09:00",
-  endTime: "10:00",
-  subject: "",
-  teacher: "",
-  batches: [] as string[],
-};
-
 function AdminPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -63,10 +62,13 @@ function AdminPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
-  const [timetableForm, setTimetableForm] = useState(emptyTimetable);
-  const [timetableEditingId, setTimetableEditingId] = useState<string | null>(null);
-  const [timetableBusy, setTimetableBusy] = useState(false);
-  const [timetableMsg, setTimetableMsg] = useState("");
+  const [ttFile, setTtFile] = useState<File | null>(null);
+  const [ttBusy, setTtBusy] = useState(false);
+  const [ttMsg, setTtMsg] = useState("");
+  const [annText, setAnnText] = useState("");
+  const [annEditingId, setAnnEditingId] = useState<string | null>(null);
+  const [annBusy, setAnnBusy] = useState(false);
+  const [annMsg, setAnnMsg] = useState("");
 
   useEffect(() => {
     if (getRole() !== "admin") navigate({ to: "/" });
@@ -90,14 +92,6 @@ function AdminPage() {
     });
   }
 
-  function toggleTimetableBatch(batch: string) {
-    setTimetableForm((current) => ({
-      ...current,
-      batches: current.batches.includes(batch)
-        ? current.batches.filter((item) => item !== batch)
-        : [...current.batches, batch],
-    }));
-  }
 
   function reset() {
     setForm(emptyForm);
@@ -147,69 +141,57 @@ function AdminPage() {
   }
 
   async function remove(id: string) {
-    if (!confirm("Delete this resource?")) return;
-    await deleteResource(id);
+    if (!(await deleteResource(id))) return;
     await qc.invalidateQueries({ queryKey: ["resources"] });
   }
 
-  async function submitTimetable(e: React.FormEvent) {
-    e.preventDefault();
-    setTimetableMsg("");
-    if (!timetableForm.subject || timetableForm.batches.length === 0) {
-      setTimetableMsg("Subject and at least one batch are required.");
-      return;
-    }
-    if (timetableForm.endTime <= timetableForm.startTime) {
-      setTimetableMsg("End time must be after start time.");
-      return;
-    }
-    setTimetableBusy(true);
+  const all = data ?? [];
+  const timetable = all.find((r) => r.type === TIMETABLE_IMAGE_TYPE);
+  const announcements = all.filter((r) => r.type === ANNOUNCEMENT_TYPE);
+
+  async function uploadTimetable() {
+    setTtMsg("");
+    if (!ttFile) return setTtMsg("Choose an image first.");
+    setTtBusy(true);
     try {
-      await saveResource(
-        timetableEditingId,
-        {
-          title: timetableForm.subject,
-          year: "1st Year",
-          batch: joinBatches("1st Year", timetableForm.batches),
-          subject: timetableForm.subject,
-          teacher: timetableForm.teacher,
-          type: TIMETABLE_TYPE,
-          description: encodeTimetable(timetableForm),
-          contributor: "",
-          captured_by: "",
-        },
-        timetableEditingId ? null : timetableAttachment(timetableForm.date),
-      );
+      await saveResource(timetable?.id ?? null, specialFields(TIMETABLE_IMAGE_TYPE, "Timetable", ""), ttFile);
       await qc.invalidateQueries({ queryKey: ["resources"] });
-      setTimetableForm({ ...emptyTimetable, date: todayValue(), batches: [] });
-      setTimetableEditingId(null);
-      setTimetableMsg("Saved.");
+      setTtFile(null);
+      setTtMsg("Timetable saved.");
     } catch (err) {
-      setTimetableMsg(err instanceof Error ? err.message : "Something went wrong.");
+      setTtMsg(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
-      setTimetableBusy(false);
+      setTtBusy(false);
     }
   }
 
-  function editTimetable(resource: Resource) {
-    const details = decodeTimetable(resource);
-    if (!details) return;
-    setTimetableEditingId(resource.id);
-    setTimetableForm({
-      ...details,
-      subject: resource.subject,
-      teacher: resource.teacher ?? "",
-      batches: parseBatches(resource.batch),
-    });
+  async function saveAnnouncement() {
+    setAnnMsg("");
+    const text = annText.trim();
+    if (!text) return setAnnMsg("Write something first.");
+    if (!annEditingId && announcements.length >= MAX_ANNOUNCEMENTS)
+      return setAnnMsg(`Maximum ${MAX_ANNOUNCEMENTS} announcements. Delete one first.`);
+    setAnnBusy(true);
+    try {
+      await saveResource(
+        annEditingId,
+        specialFields(ANNOUNCEMENT_TYPE, text.slice(0, 80), text),
+        annEditingId ? null : placeholderAttachment("announcement"),
+      );
+      await qc.invalidateQueries({ queryKey: ["resources"] });
+      setAnnText("");
+      setAnnEditingId(null);
+      setAnnMsg("Saved.");
+    } catch (err) {
+      setAnnMsg(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setAnnBusy(false);
+    }
   }
 
   const batchOptions = BATCHES[form.year] ?? [];
   const selectedBatches = parseBatches(form.batch);
-  const regularResources = (data ?? []).filter((resource) => resource.type !== TIMETABLE_TYPE);
-  const timetableEntries = (data ?? [])
-    .map((resource) => ({ resource, details: decodeTimetable(resource) }))
-    .filter(({ details }) => details !== null)
-    .sort((a, b) => `${a.details?.date}${a.details?.startTime}`.localeCompare(`${b.details?.date}${b.details?.startTime}`));
+  const regularResources = all.filter((resource) => !isSpecialType(resource.type));
 
   return (
     <main className="min-h-screen bg-background">
@@ -334,59 +316,57 @@ function AdminPage() {
           </div>
         </form>
 
-        <section className="border-t border-border pt-8" aria-labelledby="timetable-admin-heading">
-          <form onSubmit={submitTimetable} className="grid gap-3 rounded-xl border border-border bg-card p-5 shadow-sm sm:grid-cols-2 lg:grid-cols-4">
-            <div className="sm:col-span-2 lg:col-span-4">
-              <h2 id="timetable-admin-heading" className="text-base font-semibold">
-                {timetableEditingId ? "Edit timetable entry" : "Add timetable entry"}
-              </h2>
-            </div>
-            <input aria-label="Class date" type="date" className={inputCls} value={timetableForm.date} onChange={(e) => setTimetableForm((current) => ({ ...current, date: e.target.value }))} />
-            <input aria-label="Start time" type="time" className={inputCls} value={timetableForm.startTime} onChange={(e) => setTimetableForm((current) => ({ ...current, startTime: e.target.value }))} />
-            <input aria-label="End time" type="time" className={inputCls} value={timetableForm.endTime} onChange={(e) => setTimetableForm((current) => ({ ...current, endTime: e.target.value }))} />
-            <input aria-label="Timetable subject" className={inputCls} placeholder="Subject / class" value={timetableForm.subject} onChange={(e) => setTimetableForm((current) => ({ ...current, subject: e.target.value }))} />
-            <input aria-label="Timetable teacher" className={`${inputCls} sm:col-span-2 lg:col-span-4`} placeholder="Teacher" value={timetableForm.teacher} onChange={(e) => setTimetableForm((current) => ({ ...current, teacher: e.target.value }))} />
-            <fieldset className="rounded-lg border border-input p-3 sm:col-span-2 lg:col-span-4">
-              <legend className="px-1 text-sm font-medium">Batches / branches</legend>
-              <div className="mt-1 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
-                {(BATCHES["1st Year"] ?? []).map((batch) => (
-                  <label key={batch} className="flex min-h-10 items-center gap-2 rounded-md bg-secondary px-3 py-2 text-sm">
-                    <input type="checkbox" checked={timetableForm.batches.includes(batch)} onChange={() => toggleTimetableBatch(batch)} />
-                    <span>{batch}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-            <div className="flex flex-wrap items-center gap-3 sm:col-span-2 lg:col-span-4">
-              <button type="submit" disabled={timetableBusy} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60">
-                {timetableBusy ? "Saving…" : timetableEditingId ? "Save changes" : "Add class"}
+        <div className="grid gap-6 border-t border-border pt-8 lg:grid-cols-2">
+          <section aria-labelledby="timetable-admin-heading" className="space-y-3 rounded-xl border border-border bg-card p-5 shadow-sm">
+            <h2 id="timetable-admin-heading" className="text-base font-semibold">Today’s timetable image</h2>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <input type="file" accept="image/*" onChange={(e) => setTtFile(e.target.files?.[0] ?? null)} className={inputCls} />
+              <button type="button" disabled={ttBusy} onClick={uploadTimetable} className="shrink-0 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60">
+                {ttBusy ? "Uploading…" : timetable ? "Replace" : "Upload"}
               </button>
-              {timetableEditingId && (
-                <button type="button" onClick={() => { setTimetableEditingId(null); setTimetableForm({ ...emptyTimetable, date: todayValue(), batches: [] }); }} className="rounded-lg border border-input px-4 py-2 text-sm hover:bg-secondary">Cancel</button>
-              )}
-              {timetableMsg && <span className="text-sm text-muted-foreground">{timetableMsg}</span>}
             </div>
-          </form>
+            {ttMsg && <p className="text-sm text-muted-foreground">{ttMsg}</p>}
+            {timetable ? (
+              <TimetableImage
+                resource={timetable}
+                actions={<button onClick={() => remove(timetable.id)} className="rounded-lg px-4 py-2 text-sm font-medium text-destructive hover:bg-secondary">Delete</button>}
+              />
+            ) : (
+              <EmptyState>No timetable image uploaded.</EmptyState>
+            )}
+          </section>
 
-          {timetableEntries.length === 0 ? (
-            <div className="mt-4 rounded-lg border border-dashed border-border bg-card px-4 py-6 text-center text-sm text-muted-foreground">No timetable entries added.</div>
-          ) : (
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {timetableEntries.map(({ resource, details }) => (
-                <article key={resource.id} className="rounded-lg border border-border bg-card p-4 shadow-sm">
-                  <h3 className="font-semibold">{resource.subject}</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">{details?.date} · {details?.startTime}–{details?.endTime}</p>
-                  <p className="mt-2 text-sm">{resource.batch}</p>
-                  <p className="text-sm text-muted-foreground">{resource.teacher}</p>
-                  <div className="mt-3 flex gap-2">
-                    <button type="button" onClick={() => editTimetable(resource)} className="rounded-lg border border-input px-3 py-1.5 text-sm hover:bg-secondary">Edit</button>
-                    <button type="button" onClick={() => remove(resource.id)} className="rounded-lg px-3 py-1.5 text-sm font-medium text-destructive hover:bg-secondary">Delete</button>
-                  </div>
-                </article>
-              ))}
+          <section aria-labelledby="ann-admin-heading" className="space-y-3 rounded-xl border border-border bg-card p-5 shadow-sm">
+            <h2 id="ann-admin-heading" className="text-base font-semibold">
+              Announcements <span className="text-sm font-normal text-muted-foreground">({announcements.length}/{MAX_ANNOUNCEMENTS})</span>
+            </h2>
+            <textarea className={inputCls} rows={3} placeholder="Write an announcement" value={annText} onChange={(e) => setAnnText(e.target.value)} />
+            <div className="flex flex-wrap items-center gap-2">
+              <button type="button" disabled={annBusy} onClick={saveAnnouncement} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60">
+                {annBusy ? "Saving…" : annEditingId ? "Save changes" : "Add announcement"}
+              </button>
+              {annEditingId && (
+                <button type="button" onClick={() => { setAnnEditingId(null); setAnnText(""); }} className="rounded-lg border border-input px-4 py-2 text-sm hover:bg-secondary">Cancel</button>
+              )}
+              {annMsg && <span className="text-sm text-muted-foreground">{annMsg}</span>}
             </div>
-          )}
-        </section>
+            {announcements.length === 0 ? (
+              <EmptyState>No announcements yet.</EmptyState>
+            ) : (
+              <ul className="space-y-2">
+                {announcements.map((a) => (
+                  <li key={a.id} className="rounded-lg border border-border p-3">
+                    <p className="whitespace-pre-wrap text-sm">{a.description}</p>
+                    <div className="mt-2 flex gap-2">
+                      <button type="button" onClick={() => { setAnnEditingId(a.id); setAnnText(a.description ?? ""); }} className="rounded-lg border border-input px-3 py-1 text-sm hover:bg-secondary">Edit</button>
+                      <button type="button" onClick={() => remove(a.id)} className="rounded-lg px-3 py-1 text-sm font-medium text-destructive hover:bg-secondary">Delete</button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </div>
 
         <section className="border-t border-border pt-8" aria-labelledby="resource-list-heading">
           <h2 id="resource-list-heading" className="mb-4 text-base font-semibold">Uploaded resources</h2>

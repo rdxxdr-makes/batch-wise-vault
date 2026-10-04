@@ -1,37 +1,28 @@
-import type { Resource } from "./useResources";
+// Reserved resource types reuse the existing resources table without schema changes.
+export const TIMETABLE_TYPE = "__TIMETABLE__"; // legacy class entries (hidden)
+export const TIMETABLE_IMAGE_TYPE = "__TIMETABLE_IMAGE__";
+export const ANNOUNCEMENT_TYPE = "__ANNOUNCEMENT__";
+export const MAX_ANNOUNCEMENTS = 10;
 
-export const TIMETABLE_TYPE = "__TIMETABLE__";
-
-export type TimetableDetails = {
-  date: string;
-  startTime: string;
-  endTime: string;
-};
-
-const PREFIX = "TIMETABLE:";
-
-export function todayValue(date = new Date()) {
-  const offset = date.getTimezoneOffset() * 60_000;
-  return new Date(date.getTime() - offset).toISOString().slice(0, 10);
+export function isSpecialType(type: string) {
+  return type.startsWith("__");
 }
 
-export function encodeTimetable(details: TimetableDetails) {
-  return `${PREFIX}${JSON.stringify(details)}`;
-}
-
-export function decodeTimetable(resource: Resource): TimetableDetails | null {
-  if (resource.type !== TIMETABLE_TYPE || !resource.description?.startsWith(PREFIX)) return null;
-
-  try {
-    const details = JSON.parse(resource.description.slice(PREFIX.length)) as Partial<TimetableDetails>;
-    if (!details.date || !details.startTime || !details.endTime) return null;
-    return { date: details.date, startTime: details.startTime, endTime: details.endTime };
-  } catch {
-    return null;
-  }
-}
-
-export function timetableAttachment(date: string) {
+export function placeholderAttachment(name: string) {
   const content = "%PDF-1.4\n1 0 obj<</Type/Catalog>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF";
-  return new File([content], `timetable-${date}.pdf`, { type: "application/pdf" });
+  return new File([content], `${name}.pdf`, { type: "application/pdf" });
+}
+
+export function specialFields(type: string, title: string, description: string) {
+  return {
+    title,
+    year: "All",
+    batch: "All",
+    subject: "General",
+    teacher: "",
+    type,
+    description,
+    contributor: "",
+    captured_by: "",
+  };
 }
