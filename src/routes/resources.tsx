@@ -62,15 +62,15 @@ function ResourcesPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
-          <h1 className="text-lg font-semibold">Resources</h1>
+      <header className="page-header shadow-lg">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-5">
+          <h1 className="text-lg font-bold tracking-tight">Resources</h1>
           <button
             onClick={() => {
               clearSession();
               navigate({ to: "/" });
             }}
-            className="rounded-lg border border-input px-3 py-1.5 text-sm hover:bg-secondary"
+            className="btn-ondark rounded-lg px-3 py-1.5 text-sm font-semibold"
           >
             Sign out
           </button>
@@ -80,11 +80,11 @@ function ResourcesPage() {
       <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
         <div className="grid gap-8 lg:grid-cols-3">
           <section aria-labelledby="today-heading" className="lg:col-span-2">
-            <h2 id="today-heading" className="mb-3 text-lg font-semibold text-foreground">Today’s Timetable</h2>
+            <h2 id="today-heading" className="section-title mb-3 text-lg font-semibold text-foreground">Today’s Timetable</h2>
             {timetable ? <TimetableImage resource={timetable} /> : <EmptyState>No timetable added for today.</EmptyState>}
           </section>
           <section aria-labelledby="ann-heading">
-            <h2 id="ann-heading" className="mb-3 text-lg font-semibold text-foreground">Announcements</h2>
+            <h2 id="ann-heading" className="section-title mb-3 text-lg font-semibold text-foreground">Announcements</h2>
             {announcements.length === 0 ? (
               <EmptyState>No announcements yet.</EmptyState>
             ) : (
@@ -100,7 +100,7 @@ function ResourcesPage() {
         </div>
 
         <section aria-labelledby="resources-heading" className="mt-8 border-t border-border pt-7">
-          <h2 id="resources-heading" className="mb-3 text-lg font-semibold text-foreground">Study resources</h2>
+          <h2 id="resources-heading" className="section-title mb-4 text-lg font-semibold text-foreground">Study resources</h2>
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -152,7 +152,7 @@ function ResourcesPage() {
         {isLoading && <p className="mt-8 text-sm text-muted-foreground">Loading resources…</p>}
         {error && <p className="mt-8 text-sm text-destructive">Could not load resources.</p>}
         {!isLoading && list.length === 0 && (
-          <div className="mt-6 rounded-lg border border-dashed border-border bg-card px-4 py-8 text-center text-sm text-muted-foreground">
+          <div className="empty-state mt-6 rounded-xl px-4 py-10 text-center text-sm">
             No resources match your search and filters.
           </div>
         )}
