@@ -122,7 +122,16 @@ function RootComponent() {
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
       <footer className="border-t border-border bg-card px-4 py-4 text-center text-xs text-muted-foreground">
-        <p>App Managers: Lakshit, Sameya, Samar, Vamsi, Shashank</p>
+        <div className="flex w-full flex-wrap items-center justify-center gap-x-10 gap-y-2 text-center">
+  <span className="font-semibold">App Managers:</span>
+  <span>Lakshit</span>
+  <span>Sameya</span>
+  <span>Vamsi</span>
+  <span>Shashank</span>
+  <span>Samar</span>
+  <span>Gaurav</span>
+  <span>Vasu</span>
+</div>
         <p className="mt-1">App built by: Rudraksh Goyal</p>
       </footer>
     </QueryClientProvider>
