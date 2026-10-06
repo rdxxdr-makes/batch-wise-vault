@@ -4,8 +4,8 @@ import { useResources } from "@/lib/useResources";
 import { ResourceCard } from "@/components/ResourceCard";
 import { ALL_SUBJECTS, BATCHES, TYPES, YEARS, belongsToBatch, parseBatches, subjectsFor } from "@/lib/constants";
 import { clearSession } from "@/lib/session";
-import { ANNOUNCEMENT_TYPE, isSpecialType, MAX_ANNOUNCEMENTS, TIMETABLE_IMAGE_TYPE } from "@/lib/timetable";
-import { EmptyState, TimetableImage } from "@/components/Board";
+import { ANNOUNCEMENT_TYPE, EXAM_TIMETABLE_TYPE, isSpecialType, MAX_ANNOUNCEMENTS, TIMETABLE_IMAGE_TYPE } from "@/lib/timetable";
+import { EmptyState, ExamTimetableFile, TimetableImage } from "@/components/Board";
 
 export const Route = createFileRoute("/resources")({
   head: () => ({
@@ -44,6 +44,7 @@ function ResourcesPage() {
 
   const resources = useMemo(() => (data ?? []).filter((r) => !isSpecialType(r.type)), [data]);
   const timetable = (data ?? []).find((r) => r.type === TIMETABLE_IMAGE_TYPE);
+  const examTimetable = (data ?? []).find((r) => r.type === EXAM_TIMETABLE_TYPE);
   const announcements = (data ?? []).filter((r) => r.type === ANNOUNCEMENT_TYPE).slice(0, MAX_ANNOUNCEMENTS);
 
   const list = useMemo(() => {
@@ -98,6 +99,13 @@ function ResourcesPage() {
             )}
           </section>
         </div>
+
+        <section aria-labelledby="exam-timetable-heading" className="mt-8 border-t border-border pt-7">
+          <h2 id="exam-timetable-heading" className="section-title mb-3 text-lg font-semibold text-foreground">
+            {examTimetable?.title ?? "Exam timetable"}
+          </h2>
+          {examTimetable ? <ExamTimetableFile resource={examTimetable} /> : <EmptyState>No exam timetable uploaded.</EmptyState>}
+        </section>
 
         <section aria-labelledby="resources-heading" className="mt-8 border-t border-border pt-7">
           <h2 id="resources-heading" className="section-title mb-4 text-lg font-semibold text-foreground">Study resources</h2>
