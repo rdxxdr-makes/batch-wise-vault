@@ -16,13 +16,14 @@ import { clearSession, getRole } from "@/lib/session";
 import { deleteResource, saveResource } from "@/lib/store";
 import {
   ANNOUNCEMENT_TYPE,
+  EXAM_TIMETABLE_TYPE,
   isSpecialType,
   MAX_ANNOUNCEMENTS,
   placeholderAttachment,
   specialFields,
   TIMETABLE_IMAGE_TYPE,
 } from "@/lib/timetable";
-import { EmptyState, TimetableImage } from "@/components/Board";
+import { EmptyState, ExamTimetableFile, TimetableImage } from "@/components/Board";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -65,6 +66,10 @@ function AdminPage() {
   const [ttFile, setTtFile] = useState<File | null>(null);
   const [ttBusy, setTtBusy] = useState(false);
   const [ttMsg, setTtMsg] = useState("");
+  const [examHeading, setExamHeading] = useState("");
+  const [examFile, setExamFile] = useState<File | null>(null);
+  const [examBusy, setExamBusy] = useState(false);
+  const [examMsg, setExamMsg] = useState("");
   const [annText, setAnnText] = useState("");
   const [annEditingId, setAnnEditingId] = useState<string | null>(null);
   const [annBusy, setAnnBusy] = useState(false);
@@ -147,7 +152,12 @@ function AdminPage() {
 
   const all = data ?? [];
   const timetable = all.find((r) => r.type === TIMETABLE_IMAGE_TYPE);
+  const examTimetable = all.find((r) => r.type === EXAM_TIMETABLE_TYPE);
   const announcements = all.filter((r) => r.type === ANNOUNCEMENT_TYPE);
+
+  useEffect(() => {
+    setExamHeading(examTimetable?.title ?? "");
+  }, [examTimetable?.id, examTimetable?.title]);
 
   async function uploadTimetable() {
     setTtMsg("");
@@ -163,6 +173,35 @@ function AdminPage() {
     } finally {
       setTtBusy(false);
     }
+  }
+
+  async function saveExamTimetable() {
+    setExamMsg("");
+    const heading = examHeading.trim();
+    if (!heading) return setExamMsg("Enter a heading first.");
+    if (!examTimetable && !examFile) return setExamMsg("Choose an image or PDF to upload.");
+    setExamBusy(true);
+    try {
+      await saveResource(
+        examTimetable?.id ?? null,
+        specialFields(EXAM_TIMETABLE_TYPE, heading, ""),
+        examFile,
+      );
+      await qc.invalidateQueries({ queryKey: ["resources"] });
+      setExamFile(null);
+      setExamMsg("Exam timetable saved.");
+    } catch (err) {
+      setExamMsg(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setExamBusy(false);
+    }
+  }
+
+  async function removeExamTimetable() {
+    if (!examTimetable || !(await deleteResource(examTimetable.id))) return;
+    await qc.invalidateQueries({ queryKey: ["resources"] });
+    setExamHeading("");
+    setExamFile(null);
   }
 
   async function saveAnnouncement() {
@@ -317,6 +356,39 @@ function AdminPage() {
         </form>
 
         <div className="grid gap-6 border-t border-border pt-8 lg:grid-cols-2">
+          <section aria-labelledby="exam-timetable-admin-heading" className="space-y-3 rounded-xl border border-border bg-card p-5 shadow-sm">
+            <h2 id="exam-timetable-admin-heading" className="text-base font-semibold">Exam timetable</h2>
+            <input
+              className={inputCls}
+              placeholder="Exam timetable heading"
+              value={examHeading}
+              onChange={(e) => setExamHeading(e.target.value)}
+            />
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <input
+                type="file"
+                accept="image/*,application/pdf,.pdf"
+                onChange={(e) => setExamFile(e.target.files?.[0] ?? null)}
+                className={inputCls}
+              />
+              <button type="button" disabled={examBusy} onClick={saveExamTimetable} className="shrink-0 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60">
+                {examBusy ? "Saving…" : examTimetable ? "Save / Replace" : "Upload"}
+              </button>
+            </div>
+            {examMsg && <p className="text-sm text-muted-foreground">{examMsg}</p>}
+            {examTimetable ? (
+              <>
+                <p className="text-sm font-medium">{examTimetable.title}</p>
+                <ExamTimetableFile
+                  resource={examTimetable}
+                  actions={<button type="button" onClick={removeExamTimetable} className="rounded-lg px-4 py-2 text-sm font-medium text-destructive hover:bg-secondary">Delete</button>}
+                />
+              </>
+            ) : (
+              <EmptyState>No exam timetable uploaded.</EmptyState>
+            )}
+          </section>
+
           <section aria-labelledby="timetable-admin-heading" className="space-y-3 rounded-xl border border-border bg-card p-5 shadow-sm">
             <h2 id="timetable-admin-heading" className="text-base font-semibold">Today’s timetable image</h2>
             <div className="flex flex-col gap-2 sm:flex-row">

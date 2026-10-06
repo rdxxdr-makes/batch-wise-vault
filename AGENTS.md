@@ -15,4 +15,4 @@
 - All writes (upload, edit, delete) go through server functions in `src/lib/resources.functions.ts`, which check the admin PIN server-side. The database only allows public reading, so the browser can never write directly.
 - Shared option lists (years, batches, subjects, teachers, types) live in `src/lib/constants.ts`.
 - The signed-in role and PIN are kept in the browser session via `src/lib/session.ts`.
-- Timetable entries reuse `resources` rows with a reserved type and encoded date/time metadata, avoiding schema changes while preserving the existing secured write path.
+- Portal-only content reuses `resources` rows with reserved types, avoiding schema changes while preserving the existing secured write path.
