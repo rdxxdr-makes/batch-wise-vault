@@ -14,7 +14,7 @@ export async function listResources(): Promise<Resource[]> {
 
 export async function saveResource(
   id: string | null,
-  fields: Omit<Resource, "id" | "file_path" | "file_name" | "teacher" | "description" | "contributor" | "captured_by"> & {
+  fields: Omit<Resource, "id" | "file_path" | "file_name" | "created_at" | "teacher" | "description" | "contributor" | "captured_by"> & {
     teacher: string;
     description: string;
     contributor: string;
