@@ -131,6 +131,8 @@ function RootComponent() {
   <span>Samar</span>
   <span>Gaurav</span>
   <span>Vasu</span>
+  <span>Shubham</span>
+  <span>Tharun</span>
 </div>
         <p className="mt-1">App built by: Rudraksh Goyal</p>
       </footer>

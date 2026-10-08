@@ -43,6 +43,7 @@ function ResourcesPage() {
   const subjectOptions = year && batch ? subjectsFor(year, batch) : ALL_SUBJECTS;
 
   const resources = useMemo(() => (data ?? []).filter((r) => !isSpecialType(r.type)), [data]);
+  const latestResource = resources[0];
   const timetable = (data ?? []).find((r) => r.type === TIMETABLE_IMAGE_TYPE);
   const examTimetable = (data ?? []).find((r) => r.type === EXAM_TIMETABLE_TYPE);
   const announcements = (data ?? []).filter((r) => r.type === ANNOUNCEMENT_TYPE).slice(0, MAX_ANNOUNCEMENTS);
@@ -79,6 +80,23 @@ function ResourcesPage() {
       </header>
 
       <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
+        <section aria-label="Resource status" className="mb-6 grid gap-3 rounded-xl border border-border bg-card p-4 shadow-sm sm:grid-cols-[auto_1fr] sm:items-center sm:gap-6">
+          <div>
+            <p className="text-xs font-semibold uppercase text-muted-foreground">Available resources</p>
+            <p className="mt-1 text-2xl font-bold text-primary">{resources.length}</p>
+          </div>
+          <div className="min-w-0 border-t border-border pt-3 sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0">
+            <p className="text-xs font-semibold uppercase text-muted-foreground">Latest upload</p>
+            {latestResource ? (
+              <p className="mt-1 truncate text-sm text-foreground">
+                <span className="font-semibold">{latestResource.title || latestResource.file_name}</span>
+                <span className="text-muted-foreground"> · {new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" }).format(new Date(latestResource.created_at))}</span>
+              </p>
+            ) : (
+              <p className="mt-1 text-sm text-muted-foreground">No resources uploaded yet.</p>
+            )}
+          </div>
+        </section>
         <div className="grid gap-8 lg:grid-cols-3">
           <section aria-labelledby="today-heading" className="lg:col-span-2">
             <h2 id="today-heading" className="section-title mb-3 text-lg font-semibold text-foreground">Today’s Timetable</h2>
