@@ -14,6 +14,7 @@ export type Resource = {
   captured_by: string | null;
   file_path: string;
   file_name: string;
+  created_at: string;
 };
 
 export function useResources() {
