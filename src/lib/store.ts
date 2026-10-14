@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Resource } from "./useResources";
-import { getPin } from "./session";
+import { getAdminToken } from "./session";
 import { createUploadUrl, deleteResourceFn, getFileUrl, saveResourceFn } from "./resources.functions";
 
 export async function listResources(): Promise<Resource[]> {
@@ -22,15 +22,15 @@ export async function saveResource(
   },
   file: File | null,
 ) {
-  const pin = getPin() ?? "";
+  const token = getAdminToken();
   let filePath: string | null = null;
   if (file) {
-    const { path, token } = await createUploadUrl({ data: { pin, fileName: file.name } });
-    const { error } = await supabase.storage.from("resources").uploadToSignedUrl(path, token, file);
+    const { path, uploadToken } = await createUploadUrl({ data: { token, fileName: file.name } });
+    const { error } = await supabase.storage.from("resources").uploadToSignedUrl(path, uploadToken, file);
     if (error) throw new Error(error.message);
     filePath = path;
   }
-  await saveResourceFn({ data: { pin, id, fields, filePath, fileName: file ? file.name : null } });
+  await saveResourceFn({ data: { token, id, fields, filePath, fileName: file ? file.name : null } });
 }
 
 /** Asks for the delete PIN; returns true only when deleted. */
@@ -38,7 +38,7 @@ export async function deleteResource(id: string) {
   const deletePin = window.prompt("Enter delete PIN");
   if (deletePin === null) return false;
   try {
-    await deleteResourceFn({ data: { pin: getPin() ?? "", id, deletePin } });
+    await deleteResourceFn({ data: { token: getAdminToken(), id, deletePin } });
     return true;
   } catch (err) {
     alert(err instanceof Error ? err.message : "Delete failed.");
