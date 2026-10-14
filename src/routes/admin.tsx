@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useResources, type Resource } from "@/lib/useResources";
@@ -12,7 +13,8 @@ import {
   subjectsForBatches,
   teacherForBatches,
 } from "@/lib/constants";
-import { clearSession, getRole } from "@/lib/session";
+import { clearSession, getAdminToken, getRole } from "@/lib/session";
+import { verifyAdminSession } from "@/lib/auth.functions";
 import { deleteResource, saveResource } from "@/lib/store";
 import {
   ANNOUNCEMENT_TYPE,
@@ -56,6 +58,7 @@ const emptyForm = {
 
 function AdminPage() {
   const navigate = useNavigate();
+  const verifyAdmin = useServerFn(verifyAdminSession);
   const qc = useQueryClient();
   const { data } = useResources();
   const [form, setForm] = useState(emptyForm);
@@ -74,10 +77,33 @@ function AdminPage() {
   const [annEditingId, setAnnEditingId] = useState<string | null>(null);
   const [annBusy, setAnnBusy] = useState(false);
   const [annMsg, setAnnMsg] = useState("");
+  const [authorized, setAuthorized] = useState(false);
 
   useEffect(() => {
-    if (getRole() !== "admin") navigate({ to: "/" });
-  }, [navigate]);
+    let active = true;
+    async function checkSession() {
+      const token = getAdminToken();
+      if (getRole() !== "admin" || !token) {
+        navigate({ to: "/" });
+        return;
+      }
+      try {
+        if (await verifyAdmin({ data: { token } })) {
+          if (active) setAuthorized(true);
+        } else {
+          clearSession();
+          navigate({ to: "/" });
+        }
+      } catch {
+        clearSession();
+        navigate({ to: "/" });
+      }
+    }
+    void checkSession();
+    return () => {
+      active = false;
+    };
+  }, [navigate, verifyAdmin]);
 
   function set(k: keyof typeof emptyForm, v: string) {
     setForm((f) => ({
@@ -231,6 +257,8 @@ function AdminPage() {
   const batchOptions = BATCHES[form.year] ?? [];
   const selectedBatches = parseBatches(form.batch);
   const regularResources = all.filter((resource) => !isSpecialType(resource.type));
+
+  if (!authorized) return null;
 
   return (
     <main className="min-h-screen bg-background">

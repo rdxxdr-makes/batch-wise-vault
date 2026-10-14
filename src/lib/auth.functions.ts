@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { issueAdminSession } from "./admin-auth.server";
+import { isValidAdminSession, issueAdminSession } from "./admin-auth.server";
 
 export const createAdminSession = createServerFn({ method: "POST" })
   .inputValidator((data: { pin: string }) => data)
@@ -9,3 +9,7 @@ export const createAdminSession = createServerFn({ method: "POST" })
     if (!expectedPin || !sessionSecret) throw new Error("Admin sign-in is temporarily unavailable.");
     return { token: await issueAdminSession(data.pin, expectedPin, sessionSecret) };
   });
+
+export const verifyAdminSession = createServerFn({ method: "POST" })
+  .inputValidator((data: { token: string }) => data)
+  .handler(async ({ data }) => isValidAdminSession(data.token, process.env["ADMIN_SESSION_SECRET"]));
