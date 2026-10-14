@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { setSession } from "@/lib/session";
+import { createAdminSession } from "@/lib/auth.functions";
 import { STUDENT_PIN } from "@/lib/constants";
 
 export const Route = createFileRoute("/")({
@@ -25,19 +27,29 @@ export const Route = createFileRoute("/")({
 
 function Login() {
   const navigate = useNavigate();
+  const verifyAdmin = useServerFn(createAdminSession);
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (pin === "AMMA@4884") {
-      setSession("admin", pin);
-      navigate({ to: "/admin" });
-    } else if (pin === STUDENT_PIN) {
-      setSession("student", pin);
+    setError("");
+    if (pin === STUDENT_PIN) {
+      setSession("student");
       navigate({ to: "/resources" });
-    } else {
-      setError("Incorrect PIN. Please try again.");
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const { token } = await verifyAdmin({ data: { pin } });
+      setSession("admin");
+      navigate({ to: "/admin" });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Incorrect PIN. Please try again.");
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -64,9 +76,10 @@ function Login() {
           {error && <p className="text-sm text-destructive">{error}</p>}
           <button
             type="submit"
+            disabled={busy}
             className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
           >
-            Continue
+            {busy ? "Checking…" : "Continue"}
           </button>
         </form>
       </div>

@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
+import { isValidAdminSession } from "./admin-auth.server";
 
-const ADMIN_PIN = "AMMA@4884";
 const BUCKET = "resources";
 
 type Fields = {
@@ -15,29 +15,29 @@ type Fields = {
   captured_by: string;
 };
 
-async function admin(pin: string) {
-  if (pin !== ADMIN_PIN) throw new Error("Not allowed");
+async function admin(token: string) {
+  if (!(await isValidAdminSession(token, process.env["ADMIN_SESSION_SECRET"]))) throw new Error("Not allowed");
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin;
 }
 
 export const createUploadUrl = createServerFn({ method: "POST" })
-  .inputValidator((d: { pin: string; fileName: string }) => d)
+  .inputValidator((d: { token: string; fileName: string }) => d)
   .handler(async ({ data }) => {
-    const sb = await admin(data.pin);
+    const sb = await admin(data.token);
     const safe = data.fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
     const path = `${crypto.randomUUID()}-${safe}`;
     const { data: u, error } = await sb.storage.from(BUCKET).createSignedUploadUrl(path);
     if (error) throw new Error(error.message);
-    return { path, token: u.token };
+    return { path, uploadToken: u.token };
   });
 
 export const saveResourceFn = createServerFn({ method: "POST" })
   .inputValidator(
-    (d: { pin: string; id: string | null; fields: Fields; filePath: string | null; fileName: string | null }) => d,
+    (d: { token: string; id: string | null; fields: Fields; filePath: string | null; fileName: string | null }) => d,
   )
   .handler(async ({ data }) => {
-    const sb = await admin(data.pin);
+    const sb = await admin(data.token);
     const f = data.fields;
     const row = {
       title: f.title,
@@ -70,10 +70,10 @@ export const saveResourceFn = createServerFn({ method: "POST" })
   });
 
 export const deleteResourceFn = createServerFn({ method: "POST" })
-  .inputValidator((d: { pin: string; id: string; deletePin: string }) => d)
+  .inputValidator((d: { token: string; id: string; deletePin: string }) => d)
   .handler(async ({ data }) => {
     if (data.deletePin !== "543627") throw new Error("Wrong delete PIN");
-    const sb = await admin(data.pin);
+    const sb = await admin(data.token);
     const { data: old } = await sb.from("resources").select("file_path").eq("id", data.id).single();
     const { error } = await sb.from("resources").delete().eq("id", data.id);
     if (error) throw new Error(error.message);

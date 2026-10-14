@@ -12,7 +12,7 @@
 # Project rules
 
 - Resource records live in the `resources` table; files live in the private `resources` storage bucket. Files are reached only through short-lived signed links, because public buckets are blocked on this workspace.
-- All writes (upload, edit, delete) go through server functions in `src/lib/resources.functions.ts`, which check the admin PIN server-side. The database only allows public reading, so the browser can never write directly.
+- All writes (upload, edit, delete) go through server functions in `src/lib/resources.functions.ts`, which require a signed, expiring server-issued admin session before using the service role. The browser database role has public read access only; keep direct writes denied by RLS.
 - Shared option lists (years, batches, subjects, teachers, types) live in `src/lib/constants.ts`.
-- The signed-in role and PIN are kept in the browser session via `src/lib/session.ts`.
+- The browser session may store only the signed admin session token, never the admin PIN; admin credentials and signing keys are runtime secrets checked server-side.
 - Portal-only content reuses `resources` rows with reserved types, avoiding schema changes while preserving the existing secured write path.
