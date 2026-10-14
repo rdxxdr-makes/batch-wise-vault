@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { setAdminSession, setSession } from "@/lib/session";
+import { setSession } from "@/lib/session";
 import { createAdminSession } from "@/lib/auth.functions";
 import { STUDENT_PIN } from "@/lib/constants";
 
@@ -44,7 +44,7 @@ function Login() {
     setBusy(true);
     try {
       const { token } = await verifyAdmin({ data: { pin } });
-      setAdminSession(token);
+      setSession("admin");
       navigate({ to: "/admin" });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Incorrect PIN. Please try again.");

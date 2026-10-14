@@ -1,4 +1,5 @@
 const encoder = new TextEncoder();
+export const ADMIN_SESSION_COOKIE = "__Host-portal_admin";
 
 function encodeBase64Url(value: Uint8Array): string {
   let binary = "";
@@ -49,4 +50,11 @@ export async function isValidAdminSession(token: string, secret: string | undefi
   } catch {
     return false;
   }
+}
+
+export function adminSessionFromCookie(cookieHeader: string | undefined): string {
+  if (!cookieHeader) return "";
+  const prefix = `${ADMIN_SESSION_COOKIE}=`;
+  const entry = cookieHeader.split(";").map((part) => part.trim()).find((part) => part.startsWith(prefix));
+  return entry?.slice(prefix.length) ?? "";
 }
