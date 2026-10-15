@@ -46,6 +46,8 @@ function Login() {
      const res = await verifyAdmin({ data: { pin } });
     if (res?.ok) {
       setSession("admin");
+      sessionStorage.setItem("admin_token", "admin");
+      localStorage.setItem("admin_token", "admin");
       window.location.href = "/admin";
       return;
     }
