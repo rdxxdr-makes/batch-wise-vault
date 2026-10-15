@@ -60,17 +60,32 @@ export async function saveResource(
 
 /** Asks for the delete PIN; returns true only when deleted. */
 export async function deleteResource(id: string) {
-  const deletePin = window.prompt("Enter delete PIN");
-  if (deletePin === null) return false;
+  const ok = window.confirm("Are you sure you want to delete this resource?");
+  if (!ok) return false;
+
   try {
-    await deleteResourceFn({ data: { token: getAdminToken(), id, deletePin } });
+    const { data: item } = await supabase
+      .from("resources")
+      .select("file_path")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (item?.file_path) {
+      await supabase.storage.from("resources").remove([item.file_path]);
+    }
+
+    const { error } = await supabase
+      .from("resources")
+      .delete()
+      .eq("id", id);
+
+    if (error) throw new Error(error.message);
     return true;
   } catch (err) {
     alert(err instanceof Error ? err.message : "Delete failed.");
     return false;
   }
 }
-
 export async function openFile(id: string, download: boolean) {
   // Open a tab synchronously so mobile popup blockers allow it.
   const win = download ? null : window.open("", "_blank");
