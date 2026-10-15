@@ -44,13 +44,15 @@ function Login() {
     setBusy(true);
     try {
      const res = await verifyAdmin({ data: { pin } });
-    if (res?.ok) {
-      setSession("admin");
-      sessionStorage.setItem("admin_token", "admin");
-      localStorage.setItem("admin_token", "admin");
-      window.location.href = "/admin";
-      return;
-    }
+   try {
+      const res = await verifyAdmin({ data: { pin } });
+      if (res?.ok) {
+        setSession("admin");
+        sessionStorage.setItem("admin_token", pin);
+        localStorage.setItem("admin_token", pin);
+        window.location.href = "/admin";
+        return;
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Incorrect PIN. Please try again.");
     } finally {
