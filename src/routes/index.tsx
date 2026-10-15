@@ -41,10 +41,8 @@ function Login() {
       return;
     }
 
-    setBusy(true);
+ setBusy(true);
     try {
-     const res = await verifyAdmin({ data: { pin } });
-   try {
       const res = await verifyAdmin({ data: { pin } });
       if (res?.ok) {
         setSession("admin");
