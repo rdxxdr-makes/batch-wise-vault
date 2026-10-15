@@ -14,7 +14,3 @@ export function getRole(): Role | null {
 export function clearSession() {
   sessionStorage.removeItem(ROLE_KEY);
 } 
-export function getAdminToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return sessionStorage.getItem("admin_token") || localStorage.getItem("admin_token") || null;
-}
