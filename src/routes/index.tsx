@@ -43,9 +43,12 @@ function Login() {
 
     setBusy(true);
     try {
-      const { token } = await verifyAdmin({ data: { pin } });
+     const res = await verifyAdmin({ data: { pin } });
+    if (res?.ok) {
       setSession("admin");
-      navigate({ to: "/admin" });
+      window.location.href = "/admin";
+      return;
+    }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Incorrect PIN. Please try again.");
     } finally {
