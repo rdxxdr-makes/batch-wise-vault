@@ -79,31 +79,13 @@ function AdminPage() {
   const [annMsg, setAnnMsg] = useState("");
   const [authorized, setAuthorized] = useState(false);
 
-  useEffect(() => {
-    let active = true;
-    async function checkSession() {
-      const token = getAdminToken();
-      if (getRole() !== "admin" || !token) {
-        navigate({ to: "/" });
-        return;
-      }
-      try {
-        if (await verifyAdmin({ data: { token } })) {
-          if (active) setAuthorized(true);
-        } else {
-          clearSession();
-          navigate({ to: "/" });
-        }
-      } catch {
-        clearSession();
-        navigate({ to: "/" });
-      }
+ useEffect(() => {
+    if (getRole() !== "admin") {
+      navigate({ to: "/" });
+      return;
     }
-    void checkSession();
-    return () => {
-      active = false;
-    };
-  }, [navigate, verifyAdmin]);
+    setAuthorized(true);
+  }, [navigate]);
 
   function set(k: keyof typeof emptyForm, v: string) {
     setForm((f) => ({
