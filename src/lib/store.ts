@@ -22,16 +22,41 @@ export async function saveResource(
   },
   file: File | null,
 ) {
-  const token = getAdminToken();
-  let filePath: string | null = null;
-  if (file) {
-    const { path, uploadToken } = await createUploadUrl({ data: { token, fileName: file.name } });
-    const { error } = await supabase.storage.from("resources").uploadToSignedUrl(path, uploadToken, file);
-    if (error) throw new Error(error.message);
-    filePath = path;
+    let filePath: string | null = null;
+    let fileName: string | null = null;
+
+    if (file) {
+      fileName = file.name;
+      const ext = file.name.split('.').pop();
+      filePath = `${Date.now()}-${Math.random().toString(36).substring(2)}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("resources")
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw new Error(uploadError.message);
+    }
+
+    if (id) {
+      const { error } = await supabase
+        .from("resources")
+        .update({
+          ...fields,
+          ...(filePath ? { file_path: filePath, file_name: fileName } : {}),
+        })
+        .eq("id", id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await supabase
+        .from("resources")
+        .insert([{
+          ...fields,
+          file_path: filePath,
+          file_name: fileName,
+        }]);
+      if (error) throw new Error(error.message);
+    }
   }
-  await saveResourceFn({ data: { token, id, fields, filePath, fileName: file ? file.name : null } });
-}
 
 /** Asks for the delete PIN; returns true only when deleted. */
 export async function deleteResource(id: string) {
